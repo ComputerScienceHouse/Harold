@@ -46,8 +46,11 @@ void checkRFID() {
   //When the RFID info length is 14, print it and set message to null
   if (msg.length() == 14) {
     Serial.println(msg);
+    //Keep a delay so that it doesn't mistakenly read the same iButton more than once
+    delay(1000);
   }
   msg = "";
+  delay(200);
   
 }
 
@@ -72,6 +75,8 @@ void checkiButton() {
       }
       //Adds 01 at the end of iButton info since all CSHers have that at the end
       Serial.print("01");
+       //Keep a delay so that it doesn't mistakenly read the same iButton more than once
+      delay(1000);
       //Makes a new line
       Serial.println();
       
@@ -83,9 +88,6 @@ void checkiButton() {
       else {digitalWrite(13, LOW);}
   }
   else if (keyStatus!="") { Serial.print(keyStatus);}
-  
-  //Keep a delay so that it doesn't mistakenly read the same iButton more than once
-  delay(500);
   
 }
 
