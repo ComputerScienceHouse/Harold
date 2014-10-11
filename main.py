@@ -3,6 +3,8 @@ import time
 import os
 import serial
 import random
+import json
+import urllib2
 
 ser = serial.Serial('/dev/ttyACM0', 9600)
 ser.flushInput()
@@ -19,20 +21,21 @@ playing = False
 start = ""
 varID = ""
 
-songs = ["http://csh.rit.edu/~stuart/harold.mp3", "http://csh.rit.edu/~henry/harold.mp3", "http://csh.rit.edu/~mbillow/harold.mp3"]
-songs.append("http://csh.rit.edu/~henry/harold/selfie.mp3")
-songs.append("http://csh.rit.edu/~henry/harold/waka.mp3")
-songs.append("http://csh.rit.edu/~henry/harold/topworld.mp3")
-songs.append("http://csh.rit.edu/~henry/harold/heybrother.mp3")
-songs.append("http://csh.rit.edu/~henry/harold/boomclap.mp3")
-songs.append("http://csh.rit.edu/~henry/harold/starships.mp3")
-songs.append("http://csh.rit.edu/~henry/harold/domino.mp3")
-songs.append("http://csh.rit.edu/~henry/harold/cruise.mp3")
+songs = ["/users/u22/stuart/harold.mp3", "/users/u22/henry/harold.mp3", "/users/u22/mbillow/harold.mp3"]
+songs.append("/users/u22/henry/harold/selfie.mp3")
+songs.append("/users/u22/henry/harold/waka.mp3")
+songs.append("/users/u22/henry/harold/topworld.mp3")
+songs.append("/users/u22/henry/harold/heybrother.mp3")
+songs.append("/users/u22/henry/harold/boomclap.mp3")
+songs.append("/users/u22/henry/harold/starships.mp3")
+songs.append("/users/u22/henry/harold/domino.mp3")
+songs.append("/users/u22/henry/harold/cruise.mp3")
 
 while 1:
     try:
         if not playing:
             varID = ser.readline()
+            print(varID)
             if "ready" in varID:
                 varID = ""
             os.system("echo \"loadfile /home/pi/ding.mp3\" >/tmp/mplayer.fifo")
@@ -46,20 +49,26 @@ while 1:
         vol = m.getvolume()
         m.setvolume(100)
     if not playing and varID != "":
-        print("New ID: '" + varID + "'")
-        username = ""
-        if "760A0D006D322001" in varID:
-            username = "henry"
-        elif "FD0A0D00DC223601" in varID:
-            username = "stuart"
-        else:
+        try:
+            usernameData = json.load(urllib2.urlopen('http://www.csh.rit.edu:56124/?ibutton=' + varID))
+        except urllib2.HTTPError, error:
+            # Need to check its an 404, 503, 500, 403 etc.
+            contents = error.read()
+            print(contents)
+            username = ""
             dafile = songs[random.randint(0, len(songs)-1)]
-
-        if username != "":
-            print("Now playing '" + username + "'...\n")
-            os.system("echo \"loadfile http://csh.rit.edu/~" + username + "/harold.mp3\" >/tmp/mplayer.fifo")
         else:
-            print("Now playing '" + dafile + "'...\n")
+            username = usernameData['username'][0]
+            dafile = usernameData['homeDir'][0]
+            
+        print("New User: '" + username + "'")
+        
+        if (username != "") and (os.access(dafile + "/harold.mp3", os.R_OK)):
+                print("Now playing '" + username + "'...\n")
+                os.system("echo \"loadfile " + dafile + "/harold.mp3\" >/tmp/mplayer.fifo")
+        else:
+            print("Error - not found. Now playing '" + dafile + "'...\n")
+            dafile = songs[random.randint(0, len(songs)-1)]
             os.system("echo \"loadfile " + dafile + "\" >/tmp/mplayer.fifo")
 
         time.sleep(3)
