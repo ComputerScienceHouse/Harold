@@ -5,7 +5,7 @@
 
 //iButton Variables
 OneWire  ds(7);
-byte addr[7];
+byte addr[8];
 int but[6] = {0,149,107,48,13,0};
 String keyStatus = "";
 
@@ -21,7 +21,7 @@ void setup()
   //Set up iButton
   pinMode(13, OUTPUT);
   //Print a ready message
-  Serial.println("Everything's Ready!");
+  Serial.println("ready");
 }
 
 //The char in iButton
@@ -60,9 +60,9 @@ void checkiButton() {
   getKeyCode();
   //if the key is good go through this
   if(keyStatus=="ok"){
-      byte i;
+      int i;
       //For CSH iButtons there are 7 code segments in hexidecimal 
-      for( i = 7; i > 0; i--) {
+      for( i = 7; i >= 0; i--) {
         
         //Adds leading zeros to hex if only one character long
         if( addr[i] < 0x10){ 
@@ -73,23 +73,17 @@ void checkiButton() {
        Serial.print(addr[i], HEX);
        
       }
-      //Adds 01 at the end of iButton info since all CSHers have that at the end
-      Serial.print("01");
+      
        //Keep a delay so that it doesn't mistakenly read the same iButton more than once
       delay(1000);
       //Makes a new line
       Serial.println();
       
-      //Makes LED on Arduino blink so we know iButton was read
-      if(addr[1] == but[1] && addr[2] == but[2] && addr[3] == but[3] && addr[4] == but[4]){
-      digitalWrite(13, HIGH);
-      delay(500);
-      digitalWrite(13, LOW);}
-      else {digitalWrite(13, LOW);}
   }
-  else if (keyStatus!="") { Serial.print(keyStatus);}
-  
-}
+  else if (keyStatus!="") {
+    Serial.print(keyStatus);
+  }
+  }
 
 //This does a lot of weird stuff about seeing if the data in the iButton is worth getting
 void getKeyCode(){
@@ -102,15 +96,6 @@ void getKeyCode(){
       return;
   }
 
-  if ( OneWire::crc8( addr, 7) != addr[7]) {
-      keyStatus="CRC invalid";
-      return;
-  }
-  
-  if ( addr[0] != 0x01) {
-      keyStatus="not DS1990A";
-      return;
-  }
   keyStatus="ok";
   ds.reset();
 }
