@@ -22,15 +22,17 @@ start = ""
 varID = ""
 
 # This is a list of sample songs that will randomly play if the user is misidentified or does not exist!
-songs = ["/users/u22/stuart/harold.mp3", "/users/u22/henry/harold.mp3", "/users/u22/mbillow/harold.mp3"]
-songs.append("/users/u22/henry/harold/selfie.mp3")
-songs.append("/users/u22/henry/harold/waka.mp3")
-songs.append("/users/u22/henry/harold/topworld.mp3")
-songs.append("/users/u22/henry/harold/heybrother.mp3")
-songs.append("/users/u22/henry/harold/boomclap.mp3")
-songs.append("/users/u22/henry/harold/starships.mp3")
-songs.append("/users/u22/henry/harold/domino.mp3")
-songs.append("/users/u22/henry/harold/cruise.mp3")
+songs = [ "/users/u22/stuart/harold.mp3", 
+          "/users/u22/henry/harold.mp3",
+          "/users/u22/mbillow/harold.mp3"
+          "/users/u22/henry/harold/selfie.mp3",
+          "/users/u22/henry/harold/waka.mp3",
+          "/users/u22/henry/harold/topworld.mp3",
+          "/users/u22/henry/harold/heybrother.mp3",
+          "/users/u22/henry/harold/boomclap.mp3",
+          "/users/u22/henry/harold/starships.mp3",
+          "/users/u22/henry/harold/domino.mp3",
+          "/users/u22/henry/harold/cruise.mp3"]
 
 while 1:
     try:
