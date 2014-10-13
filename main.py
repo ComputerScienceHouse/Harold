@@ -10,16 +10,16 @@ import urllib2
 ser = serial.Serial('/dev/ttyACM0', 9600)
 ser.flushInput()
 
-timeHour = int(time.strftime('%H'))
+m = alsaaudio.Mixer(control='PCM')
 
-os.system("rm -f /tmp/mplayer.fifo")
-os.system("mkfifo /tmp/mplayer.fifo && mplayer -idle -slave -input file=/tmp/mplayer.fifo 1&>/dev/null &")
+os.remove("/tmp/mplayer.fifo")
+os.mkfifo("/tmp/mplayer.fifo")
+os.system("mplayer -idle -slave -input file=/tmp/mplayer.fifo 1&>/dev/null &")
 mplfifo = open("/tmp/mplayer.fifo", "w", 0)
 
 playTime = 0
 
 playing = False
-start = ""
 varID = ""
 
 # This is a list of sample songs that will randomly play if the
@@ -57,18 +57,14 @@ def get_user_song(username):
     return random.choice(DEFAULT_SONGS)
 
 while True:
-    try:
-        if not playing:
-            varID = ser.readline()
-            print(varID)
-            if "ready" in varID:
-                varID = ""
-            print("loadfile /home/pi/ding.mp3", file=mplfifo) # Mplayer will play any files sent to the FIFO file.
-    except:
-        pass
-    m = alsaaudio.Mixer(control='PCM')
-    timeHour = int(time.strftime('%H'))
-    if (23 <= timeHour <= 24) or (0 <= timeHour <= 7):
+    if not playing:
+        varID = ser.readline()
+        print(varID)
+        if "ready" in varID:
+            varID = ""
+        # Mplayer will play any files sent to the FIFO file.
+        print("loadfile", DING_SONG, file=mplfifo)
+    if (time.localtime().tm_hour + 1) % 24 <= 8:
         # Lower the volume during quiet hours... Don't piss off the RA!
         m.setvolume(85)
     else:
@@ -77,14 +73,12 @@ while True:
         try:
             # Use Nick Depinet's LDAP service!
             usernameData = json.load(urllib2.urlopen('http://www.csh.rit.edu:56124/?ibutton=' + varID))
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             # Need to check its an 404, 503, 500, 403 etc.
             print(error.read())
             username = ""
-            dafile = songs[random.randint(0, len(songs)-1)]
         else:
             username = usernameData['username'][0]
-            dafile = usernameData['homeDir'][0]
             
         # Print the user's name (Super handy for debugging...)
         print("New User: '" + username + "'")
@@ -94,10 +88,11 @@ while True:
         print("loadfile '" + song.replace("'", "\\'") + "'", file=mplfifo)
 
         time.sleep(3)
-        start = time.strftime("%s")
+        start = time.time()
         playing = True
-    elif playing and int(time.strftime("%s")) - int(start) >= 25:
-        vol = int(m.getvolume()[0])  # Fade out the music at the end.
+    elif playing and time.time() - start >= 25:
+        # Fade out the music at the end.
+        vol = int(m.getvolume()[0])
         while vol > 60:
             m.setvolume(vol)
             time.sleep(0.1)
