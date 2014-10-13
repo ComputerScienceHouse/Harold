@@ -22,18 +22,39 @@ playing = False
 start = ""
 varID = ""
 
-# This is a list of sample songs that will randomly play if the user is misidentified or does not exist!
-songs = [ "/users/u22/stuart/harold.mp3", 
-          "/users/u22/henry/harold.mp3",
-          "/users/u22/mbillow/harold.mp3"
-          "/users/u22/henry/harold/selfie.mp3",
-          "/users/u22/henry/harold/waka.mp3",
-          "/users/u22/henry/harold/topworld.mp3",
-          "/users/u22/henry/harold/heybrother.mp3",
-          "/users/u22/henry/harold/boomclap.mp3",
-          "/users/u22/henry/harold/starships.mp3",
-          "/users/u22/henry/harold/domino.mp3",
-          "/users/u22/henry/harold/cruise.mp3"]
+# This is a list of sample songs that will randomly play if the
+# user is misidentified or does not exist!
+DEFAULT_SONGS = [
+    "/users/u22/stuart/harold.mp3",
+    "/users/u22/henry/harold.mp3",
+    "/users/u22/mbillow/harold.mp3"
+    "/users/u22/henry/harold/selfie.mp3",
+    "/users/u22/henry/harold/waka.mp3",
+    "/users/u22/henry/harold/topworld.mp3",
+    "/users/u22/henry/harold/heybrother.mp3",
+    "/users/u22/henry/harold/boomclap.mp3",
+    "/users/u22/henry/harold/starships.mp3",
+    "/users/u22/henry/harold/domino.mp3",
+    "/users/u22/henry/harold/cruise.mp3"
+]
+
+SONG_EXTS = (
+    ".mp3", ".mp4", ".m4a", ".flac", ".ogg"
+)
+
+DING_SONG = "/home/pi/ding.mp3"
+
+def get_user_song(username):
+    if username:
+        homedir = os.path.expanduser("~"+username)
+        if os.path.isdir(os.path.join(homedir, "harold")):
+            playlist = [f for f in os.listdir(dafile + "/harold")
+                        if os.path.isfile(dafile + "/harold/" + f)
+                        and f.endswith(SONG_EXTS)]
+            return os.path.join(homedir, "harold", random.choice(playlist))
+        elif os.path.isfile(os.path.join(homedir, "harold.mp3")):
+            return os.path.join(homedir, "harold.mp3")
+    return random.choice(DEFAULT_SONGS)
 
 while True:
     try:
@@ -65,20 +86,9 @@ while True:
             
         print("New User: '" + username + "'")  # Print the user's name (Super handy for debugging...)
 
-        if (username != "") and (os.path.isdir(dafile + "/harold")):  #
-
-            playlistFiles = [f for f in os.listdir(dafile + "/harold") if os.path.isfile(dafile + "/harold/" + f) and f.endswith(".mp3") ]  # Makes list of files excluding directories.
-            shuffleSong = playlistFiles[random.randint(0, len(playlistFiles)-1)]  # Pick a random song from the list!
-            print("loadfile '" + dafile + "/harold/" + shuffleSong.replace("'", "\\'") + "'", file=mplfifo)  # Play dat funky music white boy!
-
-        elif (username != "") and (os.access(dafile + "/harold.mp3", os.R_OK)) and not (os.path.isdir(dafile + "/harold")):  # User only has one song, well PLAY IT!
-            print("Now playing '" + username + "'...\n")
-            print("loadfile", os.path.join(dafile, "harold.mp3", file=mplfifo)
-
-        else:
-            print("Error - not found. Now playing '" + dafile + "'...\n")  # User doesn't have ANYTHING?! (or doesn't exist...) Welp, play something from the list.
-            dafile = songs[random.randint(0, len(songs)-1)]
-            print("loadfile", dafile, file=mplfifo)
+        song = get_user_song(username)
+        print("Now playing '" + username + "'...\n")
+        print("loadfile '" + song.replace("'", "\\'") + "'", file=mplfifo)
 
         time.sleep(3)
         start = time.strftime("%s")
