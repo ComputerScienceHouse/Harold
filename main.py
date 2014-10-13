@@ -1,3 +1,4 @@
+from __future__ import print_function
 import alsaaudio
 import time
 import os
@@ -11,9 +12,9 @@ ser.flushInput()
 
 timeHour = int(time.strftime('%H'))
 
-# os.system("mplayer -slave -input file=/tmp/mplayer.fifo /home/pi/ding.mp3 &")
 os.system("rm -f /tmp/mplayer.fifo")
 os.system("mkfifo /tmp/mplayer.fifo && mplayer -idle -slave -input file=/tmp/mplayer.fifo 1&>/dev/null &")
+mplfifo = open("/tmp/mplayer.fifo", "w", 0)
 
 playTime = 0
 
@@ -34,14 +35,14 @@ songs = [ "/users/u22/stuart/harold.mp3",
           "/users/u22/henry/harold/domino.mp3",
           "/users/u22/henry/harold/cruise.mp3"]
 
-while 1:
+while True:
     try:
         if not playing:
             varID = ser.readline()
             print(varID)
             if "ready" in varID:
                 varID = ""
-            os.system("echo \"loadfile /home/pi/ding.mp3\" >/tmp/mplayer.fifo")  # Mplayer will play any files sent to the FIFO file.
+            print("loadfile /home/pi/ding.mp3", file=mplfifo) # Mplayer will play any files sent to the FIFO file.
     except:
         pass
     m = alsaaudio.Mixer(control='PCM')
@@ -68,17 +69,16 @@ while 1:
 
             playlistFiles = [f for f in os.listdir(dafile + "/harold") if os.path.isfile(dafile + "/harold/" + f) and f.endswith(".mp3") ]  # Makes list of files excluding directories.
             shuffleSong = playlistFiles[random.randint(0, len(playlistFiles)-1)]  # Pick a random song from the list!
-            os.system("echo \"loadfile '" + dafile + "/harold/" + shuffleSong.replace("'", "\\'") + "'\" >/tmp/mplayer.fifo")  # Play dat funky music white boy!
-            #os.system("bash scrapemp3.sh '" + dafile + "/harold'")
+            print("loadfile '" + dafile + "/harold/" + shuffleSong.replace("'", "\\'") + "'", file=mplfifo)  # Play dat funky music white boy!
 
         elif (username != "") and (os.access(dafile + "/harold.mp3", os.R_OK)) and not (os.path.isdir(dafile + "/harold")):  # User only has one song, well PLAY IT!
             print("Now playing '" + username + "'...\n")
-            os.system("echo \"loadfile " + dafile + "/harold.mp3\" >/tmp/mplayer.fifo")
+            print("loadfile", os.path.join(dafile, "harold.mp3", file=mplfifo)
 
         else:
             print("Error - not found. Now playing '" + dafile + "'...\n")  # User doesn't have ANYTHING?! (or doesn't exist...) Welp, play something from the list.
             dafile = songs[random.randint(0, len(songs)-1)]
-            os.system("echo \"loadfile " + dafile + "\" >/tmp/mplayer.fifo")
+            print("loadfile", dafile, file=mplfifo)
 
         time.sleep(3)
         start = time.strftime("%s")
@@ -89,7 +89,7 @@ while 1:
             m.setvolume(vol)
             time.sleep(0.1)
             vol -= 1 + 1 / 3 * (100 - vol)
-        os.system("echo \"stop\" >/tmp/mplayer.fifo")
+        print("stop", file=mplfifo)
         playing = False
         ser.flushInput()
-        print "Stopped\n"
+        print("Stopped\n")
