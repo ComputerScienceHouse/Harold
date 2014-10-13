@@ -67,24 +67,27 @@ while True:
     except:
         pass
     m = alsaaudio.Mixer(control='PCM')
-    if (23 <= timeHour <= 24) or (0 <= timeHour <= 7):  # Lower the volume during quite hours... Don't piss off the RA!
+    timeHour = int(time.strftime('%H'))
+    if (23 <= timeHour <= 24) or (0 <= timeHour <= 7):
+        # Lower the volume during quiet hours... Don't piss off the RA!
         m.setvolume(85)
     else:
         m.setvolume(100)
     if not playing and varID != "":
         try:
-            usernameData = json.load(urllib2.urlopen('http://www.csh.rit.edu:56124/?ibutton=' + varID))  # Use Nick Depinet's LDAP service!
+            # Use Nick Depinet's LDAP service!
+            usernameData = json.load(urllib2.urlopen('http://www.csh.rit.edu:56124/?ibutton=' + varID))
         except urllib2.HTTPError, error:
             # Need to check its an 404, 503, 500, 403 etc.
-            contents = error.read()
-            print(contents)
+            print(error.read())
             username = ""
             dafile = songs[random.randint(0, len(songs)-1)]
         else:
             username = usernameData['username'][0]
             dafile = usernameData['homeDir'][0]
             
-        print("New User: '" + username + "'")  # Print the user's name (Super handy for debugging...)
+        # Print the user's name (Super handy for debugging...)
+        print("New User: '" + username + "'")
 
         song = get_user_song(username)
         print("Now playing '" + username + "'...\n")
