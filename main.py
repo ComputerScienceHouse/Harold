@@ -44,12 +44,10 @@ while 1:
             os.system("echo \"loadfile /home/pi/ding.mp3\" >/tmp/mplayer.fifo")  # Mplayer will play any files sent to the FIFO file.
     except:
         pass
+    m = alsaaudio.Mixer(control='PCM')
     if (23 <= timeHour <= 24) or (0 <= timeHour <= 7):  # Lower the volume during quite hours... Don't piss off the RA!
-        m = alsaaudio.Mixer(control='PCM')
         m.setvolume(85)
     else:
-        m = alsaaudio.Mixer(control='PCM')
-        vol = m.getvolume()
         m.setvolume(100)
     if not playing and varID != "":
         try:
