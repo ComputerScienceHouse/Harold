@@ -110,9 +110,11 @@ class Harold(object):
             self.ser.flushInput()
 
     def write(self, *args, **kwargs):
+        delay = kwargs.pop("delay", 0.5)
         kws = {"file": self.fifo}
         kws.update(kwargs)
-        return print(*args, **kws)
+        print(*args, **kws)
+        time.sleep(delay)
 
     def __call__(self):
         # Lower the volume during quiet hours... Don't piss off the RA!
@@ -132,9 +134,9 @@ class Harold(object):
 
                 song = get_user_song(username)
                 print("Now playing '" + song + "'...\n")
-                self.write("loadfile '" + song.replace("'", "\\'") + "'")
+                self.write("loadfile '" + song.replace("'", "\\'") + "'",
+                           delay=3.0)
 
-                time.sleep(3)
                 self.start = time.time()
                 self.playing = True
 
