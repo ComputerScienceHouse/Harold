@@ -76,17 +76,17 @@ def read_ibutton(varID):
         # Got malformed JSON somehow
         return ""
     else:
-        return usernameData['username'][0]
+        return usernameData['username'][0], usernameData['homeDir'][0]
 
 
-def get_user_song(username):
+def get_user_song(homedir):
     '''
     Load one of the following files:
     ~/harold.mp3
     ~/harold/*, of one of the supported file types
     '''
-    if username:
-        homedir = os.path.expanduser("~" + username)
+    if homedir:
+        print("Home:", homedir)
         hdir = os.path.join(homedir, "harold")
         hfile = os.path.join(homedir, "harold.mp3")
         if os.path.isdir(hdir):
@@ -127,12 +127,12 @@ class Harold(object):
                 self.write("loadfile", DING_SONG)
             if "ready" not in varID:
                 # Get the username from the ibutton
-                username = read_ibutton(varID)
+                username, homedir = read_ibutton(varID)
 
                 # Print the user's name (Super handy for debugging...)
                 print("New User: '" + username + "'")
 
-                song = get_user_song(username)
+                song = get_user_song(homedir)
                 print("Now playing '" + song + "'...\n")
                 self.write("loadfile '" + song.replace("'", "\\'") + "'",
                            delay=0.0)
