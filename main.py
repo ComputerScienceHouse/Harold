@@ -101,11 +101,12 @@ def get_user_song(username):
 
 class Harold(object):
 
-    def __init__(self, mplfifo, ser):
+    def __init__(self, mplfifo, ser, beep=True):
         self.playing = False
         self.fifo = mplfifo
         self.mixer = Mixer(control='PCM')
         self.ser = ser
+        self.beep = beep
 
     def write(self, *args, **kwargs):
         delay = kwargs.pop("delay", 0.5)
@@ -122,7 +123,8 @@ class Harold(object):
             varID = self.ser.readline()
             print(varID)
             # mplayer will play any files sent to the FIFO file.
-            self.write("loadfile", DING_SONG)
+            if self.beep:
+                self.write("loadfile", DING_SONG)
             if "ready" not in varID:
                 # Get the username from the ibutton
                 username = read_ibutton(varID)
@@ -165,6 +167,8 @@ def main():
     parser.add_argument("--fifo", "-f",
                         default="/tmp/mplayer.fifo",
                         help="FIFO to communicate to mplayer with")
+    parser.add_argument("--nobeep", "-n", action="store_true",
+                        help="Disable beep")
     args = parser.parse_args()
     try:
         os.remove(MPLAYER_FIFO)
@@ -181,7 +185,7 @@ def main():
             else:
                 ser = Serial(args.serial, args.rate)
                 ser.flushInput()
-            harold = Harold(mplfifo, ser)
+            harold = Harold(mplfifo, ser, not args.nobeep)
             while True:
                 harold()
     except KeyboardInterrupt:
