@@ -186,7 +186,7 @@ def main():
         pass
     os.mkfifo(args.fifo)
     cmd = ["mplayer", "-idle", "-slave", "-input", "file="+args.fifo]
-    mplayer = sp.Popen(cmd, stdout=sp.PIPE)
+    mplayer = sp.Popen(cmd, stdout=sp.PIPE, stderr=FNULL)
     try:
         with open(args.fifo, "w", 0) as mplfifo:
             if args.debug:
