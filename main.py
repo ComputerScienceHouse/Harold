@@ -101,11 +101,12 @@ def get_user_song(username):
 
 class Harold(object):
 
-    def __init__(self, mplfifo, ser, beep=True):
+    def __init__(self, mplfifo, ser, mpout, beep=True):
         self.playing = False
-        self.fifo = mplfifo
         self.mixer = Mixer(control='PCM')
+        self.fifo = mplfifo
         self.ser = ser
+        self.mpout = mpout
         self.beep = beep
 
     def write(self, *args, **kwargs):
@@ -116,10 +117,9 @@ class Harold(object):
         time.sleep(delay)
 
     def __call__(self):
-        # Lower the volume during quiet hours... Don't piss off the RA!
-        self.mixer.setvolume(85 if quiet_hours() else 100)
-
         if not self.playing:
+            # Lower the volume during quiet hours... Don't piss off the RA!
+            self.mixer.setvolume(85 if quiet_hours() else 100)
             varID = self.ser.readline()
             print(varID)
             # mplayer will play any files sent to the FIFO file.
@@ -135,22 +135,32 @@ class Harold(object):
                 song = get_user_song(username)
                 print("Now playing '" + song + "'...\n")
                 self.write("loadfile '" + song.replace("'", "\\'") + "'",
-                           delay=3.0)
+                           delay=0.0)
 
-                self.start = time.time()
+                self.write("get_time_length")
+                line = self.mpout.readline()
+                while not line.startswith("ANS_LENGTH="):
+                    line = self.mpout.readline()
+                print(line)
+                duration = float(line.strip().split("=")[-1])
+
+                self.starttime = time.time()
+                self.endtime = time.time() + min(30, duration)
                 self.playing = True
 
-        elif time.time() - self.start >= 25:
-            # Fade out the music at the end.
-            vol = int(self.mixer.getvolume()[0])
-            while vol > 60:
-                self.mixer.setvolume(vol)
-                time.sleep(0.1)
-                vol -= 1 + 1 / 3 * (100 - vol)
+        elif time.time() >= self.endtime:
             self.write("stop")
             self.playing = False
             self.ser.flushInput()
             print("Stopped\n")
+
+        elif time.time() >= self.starttime+25:
+            # Fade out the music at the end.
+            vol = int(self.mixer.getvolume()[0])
+            if vol > 60:
+                vol -= 1 + 1 / 3 * (100 - vol)
+                self.mixer.setvolume(vol)
+                time.sleep(0.1)
 
 
 def main():
@@ -177,7 +187,7 @@ def main():
         pass
     os.mkfifo(args.fifo)
     cmd = ["mplayer", "-idle", "-slave", "-input", "file="+args.fifo]
-    mplayer = sp.Popen(cmd, stdout=FNULL)
+    mplayer = sp.Popen(cmd, stdout=sp.PIPE)
     try:
         with open(args.fifo, "w", 0) as mplfifo:
             if args.debug:
@@ -185,7 +195,7 @@ def main():
             else:
                 ser = Serial(args.serial, args.rate)
                 ser.flushInput()
-            harold = Harold(mplfifo, ser, not args.nobeep)
+            harold = Harold(mplfifo, ser, mplayer.stdout, not args.nobeep)
             while True:
                 harold()
     except KeyboardInterrupt:
