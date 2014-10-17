@@ -141,7 +141,6 @@ class Harold(object):
                 line = self.mpout.readline()
                 while not line.startswith("ANS_LENGTH="):
                     line = self.mpout.readline()
-                print(line)
                 duration = float(line.strip().split("=")[-1])
 
                 self.starttime = time.time()
