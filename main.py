@@ -4,8 +4,10 @@ from alsaaudio import Mixer
 from random import choice
 from serial import Serial
 from urllib2 import urlopen
+import atexit
 import json
 import os
+import subprocess as sp
 import time
 
 # This is a list of sample songs that will randomly play if the
@@ -31,6 +33,8 @@ SONG_EXTS = (
 DING_SONG = "/home/pi/ding.mp3"
 
 MPLAYER_FIFO = "/tmp/mplayer.fifo"
+
+FNULL = open(os.devnull, 'w')
 
 
 def quiet_hours():
@@ -138,8 +142,9 @@ def main():
         # This is fine, there just isn't a FIFO there already
         pass
     os.mkfifo(MPLAYER_FIFO)
-    os.system("mplayer -idle -slave -input file={} 1&>/dev/null &"
-              .format(MPLAYER_FIFO))
+    cmd = ["mplayer", "-idle", "-slave", "-input", "file="+MPLAYER_FIFO]
+    mplayer = sp.Popen(cmd, stdout=FNULL)
+    atexit.register(mplayer.kill)
     with open(MPLAYER_FIFO, "w", 0) as mplfifo:
         harold = Harold(mplfifo)
         while True:
