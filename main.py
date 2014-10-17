@@ -10,7 +10,7 @@ import subprocess as sp
 import sys
 import time
 
-DEBUG=True
+DEBUG=False
 
 # This is a list of sample songs that will randomly play if the
 # user is misidentified or does not exist!
