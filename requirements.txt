@@ -1,0 +1,2 @@
+pyalsaaudio==0.7
+pyserial==2.7
