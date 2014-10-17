@@ -3,19 +3,21 @@ from __future__ import print_function
 from alsaaudio import Mixer
 from random import choice
 from serial import Serial
-from urllib2 import urlopen
-import atexit
+from urllib2 import urlopen, HTTPError
 import json
 import os
 import subprocess as sp
+import sys
 import time
+
+DEBUG=True
 
 # This is a list of sample songs that will randomly play if the
 # user is misidentified or does not exist!
 DEFAULT_SONGS = [
     "/users/u22/stuart/harold.mp3",
     "/users/u22/henry/harold.mp3",
-    "/users/u22/mbillow/harold.mp3"
+    "/users/u22/mbillow/harold.mp3",
     "/users/u22/henry/harold/selfie.mp3",
     "/users/u22/henry/harold/waka.mp3",
     "/users/u22/henry/harold/topworld.mp3",
@@ -27,7 +29,9 @@ DEFAULT_SONGS = [
 ]
 
 SONG_EXTS = (
-    ".mp3", ".mp4", ".m4a", ".flac", ".ogg", ".wav"
+    ".mp3", ".mp4", ".m4a", ".m4p",
+    ".flac", ".ogg", ".oga", ".wav",
+    ".wma"
 )
 
 DING_SONG = "/home/pi/ding.mp3"
@@ -35,6 +39,15 @@ DING_SONG = "/home/pi/ding.mp3"
 MPLAYER_FIFO = "/tmp/mplayer.fifo"
 
 FNULL = open(os.devnull, 'w')
+
+
+class MockSerial:
+    def __init__(self, fi=sys.stdin):
+        self.fi = fi
+    def readline(self):
+        return self.fi.readline()
+    def flushInput(self):
+        return self.fi.flush()
 
 
 def quiet_hours():
@@ -53,7 +66,7 @@ def read_ibutton(varID):
     try:
         data = urlopen('http://www.csh.rit.edu:56124/?ibutton=' + varID)
         usernameData = json.load(data)
-    except urllib2.HTTPError as error:
+    except HTTPError as error:
         # Need to check its an 404, 503, 500, 403 etc.
         print(error.read())
         return ""
@@ -90,8 +103,11 @@ class Harold(object):
         self.playing = False
         self.fifo = mplfifo
         self.mixer = Mixer(control='PCM')
-        self.ser = Serial('/dev/ttyACM0', 9600)
-        self.ser.flushInput()
+        if DEBUG:
+            self.ser = MockSerial()
+        else:
+            self.ser = Serial('/dev/ttyACM0', 9600)
+            self.ser.flushInput()
 
     def write(self, *args, **kwargs):
         kws = {"file": self.fifo}
@@ -119,10 +135,10 @@ class Harold(object):
                 self.write("loadfile '" + song.replace("'", "\\'") + "'")
 
                 time.sleep(3)
-                start = time.time()
+                self.start = time.time()
                 self.playing = True
 
-        elif time.time() - start >= 25:
+        elif time.time() - self.start >= 25:
             # Fade out the music at the end.
             vol = int(self.mixer.getvolume()[0])
             while vol > 60:
@@ -144,11 +160,15 @@ def main():
     os.mkfifo(MPLAYER_FIFO)
     cmd = ["mplayer", "-idle", "-slave", "-input", "file="+MPLAYER_FIFO]
     mplayer = sp.Popen(cmd, stdout=FNULL)
-    atexit.register(mplayer.kill)
-    with open(MPLAYER_FIFO, "w", 0) as mplfifo:
-        harold = Harold(mplfifo)
-        while True:
-            harold()
+    try:
+        with open(MPLAYER_FIFO, "w", 0) as mplfifo:
+            harold = Harold(mplfifo)
+            while True:
+                harold()
+    except KeyboardInterrupt:
+        print("Shutting down")
+    finally:
+        mplayer.kill()
 
 if __name__ == '__main__':
     main()
