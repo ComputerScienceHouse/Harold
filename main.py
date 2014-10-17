@@ -4,13 +4,12 @@ from alsaaudio import Mixer
 from random import choice
 from serial import Serial
 from urllib2 import urlopen, HTTPError
+import argparse
 import json
 import os
 import subprocess as sp
 import sys
 import time
-
-DEBUG=False
 
 # This is a list of sample songs that will randomly play if the
 # user is misidentified or does not exist!
@@ -42,10 +41,13 @@ FNULL = open(os.devnull, 'w')
 
 
 class MockSerial:
+
     def __init__(self, fi=sys.stdin):
         self.fi = fi
+
     def readline(self):
         return self.fi.readline()
+
     def flushInput(self):
         return self.fi.flush()
 
@@ -99,15 +101,11 @@ def get_user_song(username):
 
 class Harold(object):
 
-    def __init__(self, mplfifo):
+    def __init__(self, mplfifo, ser):
         self.playing = False
         self.fifo = mplfifo
         self.mixer = Mixer(control='PCM')
-        if DEBUG:
-            self.ser = MockSerial()
-        else:
-            self.ser = Serial('/dev/ttyACM0', 9600)
-            self.ser.flushInput()
+        self.ser = ser
 
     def write(self, *args, **kwargs):
         delay = kwargs.pop("delay", 0.5)
@@ -154,17 +152,36 @@ class Harold(object):
 
 
 def main():
+    # Handle some command line arguments
+    parser = argparse.ArgumentParser(description="Start Harold system")
+    parser.add_argument("--debug", "-d", action="store_true",
+                        help="Use debug mode (stdin)")
+    parser.add_argument("--serial", "-s",
+                        default="/dev/ttyACM0",
+                        help="Serial port to use", metavar="PORT")
+    parser.add_argument("--rate", "-r",
+                        default=9600, type=int,
+                        help="Serial device to use")
+    parser.add_argument("--fifo", "-f",
+                        default="/tmp/mplayer.fifo",
+                        help="FIFO to communicate to mplayer with")
+    args = parser.parse_args()
     try:
         os.remove(MPLAYER_FIFO)
     except OSError:
         # This is fine, there just isn't a FIFO there already
         pass
-    os.mkfifo(MPLAYER_FIFO)
-    cmd = ["mplayer", "-idle", "-slave", "-input", "file="+MPLAYER_FIFO]
+    os.mkfifo(args.fifo)
+    cmd = ["mplayer", "-idle", "-slave", "-input", "file="+args.fifo]
     mplayer = sp.Popen(cmd, stdout=FNULL)
     try:
-        with open(MPLAYER_FIFO, "w", 0) as mplfifo:
-            harold = Harold(mplfifo)
+        with open(args.fifo, "w", 0) as mplfifo:
+            if args.debug:
+                ser = MockSerial()
+            else:
+                ser = Serial(args.serial, args.rate)
+                ser.flushInput()
+            harold = Harold(mplfifo, ser)
             while True:
                 harold()
     except KeyboardInterrupt:
