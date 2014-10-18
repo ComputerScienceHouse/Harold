@@ -14,17 +14,14 @@ import time
 # This is a list of sample songs that will randomly play if the
 # user is misidentified or does not exist!
 DEFAULT_SONGS = [
-    "/users/u22/stuart/harold.mp3",
-    "/users/u22/henry/harold.mp3",
-    "/users/u22/mbillow/harold.mp3",
-    "/users/u22/henry/harold/selfie.mp3",
-    "/users/u22/henry/harold/waka.mp3",
-    "/users/u22/henry/harold/topworld.mp3",
-    "/users/u22/henry/harold/heybrother.mp3",
-    "/users/u22/henry/harold/boomclap.mp3",
-    "/users/u22/henry/harold/starships.mp3",
-    "/users/u22/henry/harold/domino.mp3",
-    "/users/u22/henry/harold/cruise.mp3"
+    "/home/pi/random/selfie.mp3",
+    "/home/pi/random/waka.mp3",
+    "/home/pi/random/topworld.mp3",
+    "/home/pi/random/heybrother.mp3",
+    "/home/pi/random/boomclap.mp3",
+    "/home/pi/random/starships.mp3",
+    "/home/pi/random/domino.mp3",
+    "/home/pi/random/cruise.mp3"
 ]
 
 SONG_EXTS = (
