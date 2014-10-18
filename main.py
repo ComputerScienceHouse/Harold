@@ -71,10 +71,10 @@ def read_ibutton(varID):
     except HTTPError as error:
         # Need to check its an 404, 503, 500, 403 etc.
         print(error.read())
-        return ""
+        return "", ""
     except ValueError as error:
         # Got malformed JSON somehow
-        return ""
+        return "", ""
     else:
         return usernameData['username'][0], usernameData['homeDir'][0]
 
