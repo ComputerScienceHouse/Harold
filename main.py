@@ -90,7 +90,7 @@ def get_user_song(homedir):
             playlist = [f for f in os.listdir(hdir)
                         if os.path.isfile(os.path.join(hdir, f))
                         and f.endswith(SONG_EXTS)]
-            return os.path.join(hdir, choice(playlist))
+            return os.path.join(hdir, choice(playlist or DEFAULT_SONGS))
         elif os.path.isfile(hfile):
             return hfile
     return choice(DEFAULT_SONGS)
