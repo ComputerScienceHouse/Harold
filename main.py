@@ -13,16 +13,7 @@ import time
 
 # This is a list of sample songs that will randomly play if the
 # user is misidentified or does not exist!
-DEFAULT_SONGS = [
-    "/home/pi/random/selfie.mp3",
-    "/home/pi/random/waka.mp3",
-    "/home/pi/random/topworld.mp3",
-    "/home/pi/random/heybrother.mp3",
-    "/home/pi/random/boomclap.mp3",
-    "/home/pi/random/starships.mp3",
-    "/home/pi/random/domino.mp3",
-    "/home/pi/random/cruise.mp3"
-]
+DEFAULT_SONGS = os.listdir("/home/pi/random")
 
 SONG_EXTS = (
     ".mp3", ".mp4", ".m4a", ".m4p",
@@ -68,12 +59,12 @@ def read_ibutton(varID):
     except HTTPError as error:
         # Need to check its an 404, 503, 500, 403 etc.
         print(error.read())
-        return "", ""
     except ValueError as error:
         # Got malformed JSON somehow
-        return "", ""
+        print(error)
     else:
         return usernameData['username'][0], usernameData['homeDir'][0]
+    return "", ""
 
 
 def get_user_song(homedir):
