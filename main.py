@@ -49,10 +49,14 @@ def quiet_hours():
         return (currtime.tm_hour + 1) % 24 < 8
 
 
-def read_ibutton(varID):
+def read_ibutton(varID, cache={}):
     '''
     Use Nick Depinet's LDAP service to convert iButtons to usernames
+
+    Caches values when possible (iButtons don't really change)
     '''
+    if varID in cache:
+        return cache[varID]
     try:
         data = urlopen('http://www.csh.rit.edu:56124/?ibutton=' + varID)
         usernameData = json.load(data)
@@ -63,7 +67,8 @@ def read_ibutton(varID):
         # Got malformed JSON somehow
         print(error)
     else:
-        return usernameData['username'][0], usernameData['homeDir'][0]
+        cache[varID] = usernameData['username'][0], usernameData['homeDir'][0]
+        return cache[varID]
     return "", ""
 
 
