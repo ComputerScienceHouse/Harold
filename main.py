@@ -168,11 +168,11 @@ def main():
                         help="Disable beep")
     args = parser.parse_args()
     try:
-        os.remove(MPLAYER_FIFO)
-    except OSError:
-        # This is fine, there just isn't a FIFO there already
-        pass
-    os.mkfifo(args.fifo)
+        os.mkfifo(args.fifo)
+    except OSError as e:
+        import errno
+        if e.errno != errno.EEXIST:
+            raise
     cmd = ["mplayer", "-idle", "-slave", "-input", "file="+args.fifo]
     mplayer = sp.Popen(cmd, stdout=sp.PIPE, stderr=FNULL)
     try:
@@ -189,6 +189,7 @@ def main():
         print("Shutting down")
     finally:
         mplayer.kill()
+        os.remove(args.fifo)
 
 if __name__ == '__main__':
     main()
