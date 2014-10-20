@@ -14,7 +14,8 @@ import time
 
 # This is a list of sample songs that will randomly play if the
 # user is misidentified or does not exist!
-DEFAULT_SONGS = os.listdir("/home/pi/random")
+DEFAULT_SONGS = map(lambda f: os.path.join("/home/pi/random", f),
+                    os.listdir("/home/pi/random"))
 
 SONG_EXTS = (
     ".mp3", ".mp4", ".m4a", ".m4p",
