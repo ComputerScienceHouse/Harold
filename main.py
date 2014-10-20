@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import division
 from __future__ import print_function
 from alsaaudio import Mixer
 from random import choice
@@ -150,8 +151,8 @@ class Harold(object):
             # Fade out the music at the end.
             vol = int(self.mixer.getvolume()[0])
             if vol > 60:
-                vol -= 1 + 1 / 3 * (100 - vol)
-                self.mixer.setvolume(vol)
+                vol -= 1 + (100 - vol)/3.
+                self.mixer.setvolume(int(vol))
                 time.sleep(0.1)
 
 
