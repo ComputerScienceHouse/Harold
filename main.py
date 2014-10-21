@@ -12,6 +12,7 @@ import subprocess as sp
 import sys
 import time
 
+
 # This is a list of sample songs that will randomly play if the
 # user is misidentified or does not exist!
 DEFAULT_SONGS = map(lambda f: os.path.join("/home/pi/random", f),
@@ -114,22 +115,26 @@ class Harold(object):
 
     def __call__(self):
         if not self.playing:
+            #os.system("cat /home/pi/logs/user_log.txt | tail -58 > /home/pi/logs/user_log.txt")
+            userlog = open("/home/pi/logs/user_log.txt", "a")
             # Lower the volume during quiet hours... Don't piss off the RA!
             self.mixer.setvolume(85 if quiet_hours() else 100)
             varID = self.ser.readline()
             print(varID)
+            userlog.write(time.strftime('%Y/%m/%d %H:%M:%S') + "  " + varID)
             # mplayer will play any files sent to the FIFO file.
             if self.beep:
                 self.write("loadfile", DING_SONG)
             if "ready" not in varID:
                 # Get the username from the ibutton
                 username, homedir = read_ibutton(varID)
-
                 # Print the user's name (Super handy for debugging...)
-                print("New User: '" + username + "'")
+                print("User: '" + username + "'\n")
+                userlog.write("User: '" + username + "' ")
 
                 song = get_user_song(homedir)
                 print("Now playing '" + song + "'...\n")
+                userlog.write("Now playing '" + song + "'...\n")
                 self.write("loadfile '" + song.replace("'", "\\'") + "'",
                            delay=0.0)
 
@@ -142,18 +147,18 @@ class Harold(object):
                 self.starttime = time.time()
                 self.endtime = time.time() + min(30, duration)
                 self.playing = True
-
+                userlog.close()
         elif time.time() >= self.endtime:
             self.write("stop")
             self.playing = False
             self.ser.flushInput()
             print("Stopped\n")
 
-        elif time.time() >= self.starttime+25:
+        elif time.time() >= self.starttime+28:
             # Fade out the music at the end.
             vol = int(self.mixer.getvolume()[0])
-            if vol > 60:
-                vol -= 1 + (100 - vol)/3.
+            while vol > 60:
+                vol -= 1 + (100 - vol)/30.
                 self.mixer.setvolume(int(vol))
                 time.sleep(0.1)
 
