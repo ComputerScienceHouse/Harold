@@ -62,7 +62,7 @@ def read_ibutton(varID, cache={}):
         return cache[varID]
     try:
         data = urlopen('http://www.csh.rit.edu:56124/?ibutton=' + varID)
-        usernameData = json.load(data)
+        uidData = json.load(data)
     except HTTPError as error:
         # Need to check its an 404, 503, 500, 403 etc.
         print(error.read())
@@ -70,7 +70,7 @@ def read_ibutton(varID, cache={}):
         # Got malformed JSON somehow
         print(error)
     else:
-        cache[varID] = usernameData['username'][0], usernameData['homeDir'][0]
+        cache[varID] = uidData['uid'], uidData['homeDir']
         return cache[varID]
     return "", ""
 
@@ -127,10 +127,10 @@ class Harold(object):
                 self.write("loadfile", DING_SONG)
             if "ready" not in varID:
                 # Get the username from the ibutton
-                username, homedir = read_ibutton(varID)
+                uid, homedir = read_ibutton(varID)
                 # Print the user's name (Super handy for debugging...)
-                print("User: '" + username + "'\n")
-                userlog.write("User: '" + username + "' ")
+                print("User: '" + uid + "'\n")
+                userlog.write("User: '" + uid + "' ")
 
                 song = get_user_song(homedir)
                 print("Now playing '" + song + "'...\n")
