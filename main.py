@@ -131,7 +131,7 @@ class Harold(object):
                 print("User: '" + uid + "'\n")
                 song = get_user_song(homedir)
                 print("Now playing '" + song + "'...\n")
-                varID = varID[:-1]
+                varID = varID[:-2]
                 userlog.write("\n" + time.strftime('%Y/%m/%d %H:%M:%S') + "," + varID + "," + uid + "," + song)
                 self.write("loadfile '" + song.replace("'", "\\'") + "'",
                            delay=0.0)
