@@ -116,12 +116,11 @@ class Harold(object):
     def __call__(self):
         if not self.playing:
             #os.system("cat /home/pi/logs/user_log.txt | tail -58 > /home/pi/logs/user_log.txt")
-            userlog = open("/home/pi/logs/user_log.txt", "a")
+            userlog = open("/home/pi/logs/user_log.csv", "a")
             # Lower the volume during quiet hours... Don't piss off the RA!
             self.mixer.setvolume(85 if quiet_hours() else 100)
             varID = self.ser.readline()
             print(varID)
-            userlog.write(time.strftime('%Y/%m/%d %H:%M:%S') + "  " + varID)
             # mplayer will play any files sent to the FIFO file.
             if self.beep:
                 self.write("loadfile", DING_SONG)
@@ -130,11 +129,10 @@ class Harold(object):
                 uid, homedir = read_ibutton(varID)
                 # Print the user's name (Super handy for debugging...)
                 print("User: '" + uid + "'\n")
-                userlog.write("User: '" + uid + "' ")
-
                 song = get_user_song(homedir)
                 print("Now playing '" + song + "'...\n")
-                userlog.write("Now playing '" + song + "'...\n")
+                varID = varID[:-1]
+                userlog.write("\n" + time.strftime('%Y/%m/%d %H:%M:%S') + "," + varID + "," + uid + "," + song)
                 self.write("loadfile '" + song.replace("'", "\\'") + "'",
                            delay=0.0)
 
