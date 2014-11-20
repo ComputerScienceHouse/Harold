@@ -85,10 +85,17 @@ def get_user_song(homedir):
         print("Home:", homedir)
         hdir = os.path.join(homedir, "harold")
         hfile = os.path.join(homedir, "harold.mp3")
+        hiddenhdir = os.path.join(homedir, ".harold")
         if os.path.isdir(hdir):
             playlist = [os.path.join(hdir, f)
                         for f in os.listdir(hdir)
                         if os.path.isfile(os.path.join(hdir, f))
+                        and f.endswith(SONG_EXTS)]
+            return choice(playlist or DEFAULT_SONGS)
+        elif os.path.isdir(hiddenhdir):
+            playlist = [os.path.join(hiddenhdir, f)
+                        for f in os.listdir(hiddenhdir)
+                        if os.path.isfile(os.path.join(hiddenhdir, f))
                         and f.endswith(SONG_EXTS)]
             return choice(playlist or DEFAULT_SONGS)
         elif os.path.isfile(hfile):
