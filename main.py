@@ -5,6 +5,7 @@ from alsaaudio import Mixer
 from random import choice
 from serial import Serial
 from urllib2 import urlopen, HTTPError
+import RPi.GPIO as GPIO
 import argparse
 import json
 import os
@@ -30,6 +31,11 @@ MPLAYER_FIFO = "/tmp/mplayer.fifo"
 
 FNULL = open(os.devnull, 'w')
 
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(7, GPIO.OUT)
+GPIO.setup(11, GPIO.OUT)
+GPIO.output(7, True)
+GPIO.output(11, True)
 
 class MockSerial:
 
@@ -122,7 +128,6 @@ class Harold(object):
 
     def __call__(self):
         if not self.playing:
-            #os.system("cat /home/pi/logs/user_log.txt | tail -58 > /home/pi/logs/user_log.txt")
             userlog = open("/home/pi/logs/user_log.csv", "a")
             # Lower the volume during quiet hours... Don't piss off the RA!
             self.mixer.setvolume(85 if quiet_hours() else 100)
@@ -132,6 +137,9 @@ class Harold(object):
             if self.beep:
                 self.write("loadfile", DING_SONG)
             if "ready" not in varID:
+                # Turn the LEDs off
+                GPIO.output(7, False)
+                GPIO.output(11, False)
                 # Get the username from the ibutton
                 uid, homedir = read_ibutton(varID)
                 # Print the user's name (Super handy for debugging...)
@@ -157,6 +165,8 @@ class Harold(object):
             self.write("stop")
             self.playing = False
             self.ser.flushInput()
+            GPIO.output(7, True)
+            GPIO.output(11, True)
             print("Stopped\n")
 
         elif time.time() >= self.starttime+28:
