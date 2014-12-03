@@ -148,10 +148,9 @@ class Harold(object):
                 print("Now playing '" + song + "'...\n")
                 varID = varID[:-2]
                 userlog.write("\n" + time.strftime('%Y/%m/%d %H:%M:%S') + "," + varID + "," + uid + "," + song)
-                self.write("loadfile '" + song.replace("'", "\\'") + "'",
+                self.write("loadfile '" + song.replace("'", "\\'") + "'\nget_time_length",
                            delay=0.0)
 
-                self.write("get_time_length")
                 line = self.mpout.readline()
                 while not line.startswith("ANS_LENGTH="):
                     line = self.mpout.readline()
