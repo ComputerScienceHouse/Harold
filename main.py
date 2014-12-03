@@ -32,10 +32,10 @@ MPLAYER_FIFO = "/tmp/mplayer.fifo"
 FNULL = open(os.devnull, 'w')
 
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(16, GPIO.OUT)
-GPIO.setup(18, GPIO.OUT)
-GPIO.output(16, True)
-GPIO.output(18, True)
+GPIO.setup(7, GPIO.OUT)
+GPIO.setup(11, GPIO.OUT)
+GPIO.output(7, True)
+GPIO.output(11, True)
 
 class MockSerial:
 
@@ -138,8 +138,8 @@ class Harold(object):
                 self.write("loadfile", DING_SONG)
             if "ready" not in varID:
                 # Turn the LEDs off
-                GPIO.output(16, False)
-                GPIO.output(18, False)
+                GPIO.output(7, False)
+                GPIO.output(11, False)
                 # Get the username from the ibutton
                 uid, homedir = read_ibutton(varID)
                 # Print the user's name (Super handy for debugging...)
@@ -165,8 +165,8 @@ class Harold(object):
             self.write("stop")
             self.playing = False
             self.ser.flushInput()
-            GPIO.output(16, True)
-            GPIO.output(18, True)
+            GPIO.output(7, True)
+            GPIO.output(11, True)
             print("Stopped\n")
 
         elif time.time() >= self.starttime+28:
