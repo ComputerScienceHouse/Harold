@@ -2,28 +2,14 @@
 from __future__ import division
 from __future__ import print_function
 from alsaaudio import Mixer
-from random import choice
 from serial import Serial
-from urllib2 import urlopen, HTTPError
-import RPi.GPIO as GPIO
+from get_user import read_ibutton, get_user_song
+import led_control as LED
 import argparse
-import json
 import os
 import subprocess as sp
 import sys
 import time
-
-
-# This is a list of sample songs that will randomly play if the
-# user is misidentified or does not exist!
-DEFAULT_SONGS = map(lambda f: os.path.join("/home/pi/random", f),
-                    os.listdir("/home/pi/random"))
-
-SONG_EXTS = (
-    ".mp3", ".mp4", ".m4a", ".m4p",
-    ".flac", ".ogg", ".oga", ".wav",
-    ".wma"
-)
 
 DING_SONG = "/home/pi/ding.mp3"
 
@@ -31,11 +17,7 @@ MPLAYER_FIFO = "/tmp/mplayer.fifo"
 
 FNULL = open(os.devnull, 'w')
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(7, GPIO.OUT)
-GPIO.setup(11, GPIO.OUT)
-GPIO.output(7, True)
-GPIO.output(11, True)
+LED.open_pins()
 
 class MockSerial:
 
@@ -56,57 +38,6 @@ def quiet_hours():
         return (currtime.tm_hour + 23) % 24 < 6
     else:
         return (currtime.tm_hour + 1) % 24 < 8
-
-
-def read_ibutton(varID, cache={}):
-    '''
-    Use Nick Depinet's LDAP service to convert iButtons to usernames
-
-    Caches values when possible (iButtons don't really change)
-    '''
-    if varID in cache:
-        return cache[varID]
-    try:
-        data = urlopen('http://www.csh.rit.edu:56124/?ibutton=' + varID)
-        uidData = json.load(data)
-    except HTTPError as error:
-        # Need to check its an 404, 503, 500, 403 etc.
-        print(error.read())
-    except ValueError as error:
-        # Got malformed JSON somehow
-        print(error)
-    else:
-        cache[varID] = uidData['uid'], uidData['homeDir']
-        return cache[varID]
-    return "", ""
-
-
-def get_user_song(homedir):
-    '''
-    Load one of the following files:
-    ~/harold.mp3
-    ~/harold/*, of one of the supported file types
-    '''
-    if homedir:
-        print("Home:", homedir)
-        hdir = os.path.join(homedir, "harold")
-        hfile = os.path.join(homedir, "harold.mp3")
-        hiddenhdir = os.path.join(homedir, ".harold")
-        if os.path.isdir(hdir):
-            playlist = [os.path.join(hdir, f)
-                        for f in os.listdir(hdir)
-                        if os.path.isfile(os.path.join(hdir, f))
-                        and f.endswith(SONG_EXTS)]
-            return choice(playlist or DEFAULT_SONGS)
-        elif os.path.isdir(hiddenhdir):
-            playlist = [os.path.join(hiddenhdir, f)
-                        for f in os.listdir(hiddenhdir)
-                        if os.path.isfile(os.path.join(hiddenhdir, f))
-                        and f.endswith(SONG_EXTS)]
-            return choice(playlist or DEFAULT_SONGS)
-        elif os.path.isfile(hfile):
-            return hfile
-    return choice(DEFAULT_SONGS)
 
 
 class Harold(object):
@@ -138,8 +69,8 @@ class Harold(object):
                 self.write("loadfile", DING_SONG)
             if "ready" not in varID:
                 # Turn the LEDs off
-                GPIO.output(7, False)
-                GPIO.output(11, False)
+                LED.on(False)
+                LED.on(False)
                 # Get the username from the ibutton
                 uid, homedir = read_ibutton(varID)
                 # Print the user's name (Super handy for debugging...)
@@ -164,8 +95,8 @@ class Harold(object):
             self.write("stop")
             self.playing = False
             self.ser.flushInput()
-            GPIO.output(7, True)
-            GPIO.output(11, True)
+            LED.on(True)
+            LED.on(True)
             print("Stopped\n")
 
         elif time.time() >= self.starttime+28:
