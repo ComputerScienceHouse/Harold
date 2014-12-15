@@ -148,6 +148,7 @@ def main():
     finally:
         mplayer.kill()
         os.remove(args.fifo)
+        LED.cleanup()
 
 if __name__ == '__main__':
     main()

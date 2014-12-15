@@ -21,3 +21,7 @@ def on(switch):
         GPIO.output(7, False)
         GPIO.output(11, False)
         print "LED OFF"
+
+
+def cleanup():
+    GPIO.cleanup()
