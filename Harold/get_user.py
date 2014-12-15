@@ -6,8 +6,8 @@ import os
 
 # This is a list of sample songs that will randomly play if the
 # user is misidentified or does not exist!
-DEFAULT_SONGS = map(lambda f: os.path.join("/home/pi/random", f),
-                    os.listdir("/home/pi/random"))
+DEFAULT_SONGS = map(lambda f: os.path.join("/harold/Harold/random", f),
+                    os.listdir("/harold/Harold/random"))
 
 # List of compatible song types.
 SONG_EXTS = (

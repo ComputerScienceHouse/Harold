@@ -11,7 +11,7 @@ import subprocess as sp
 import sys
 import time
 
-DING_SONG = "/home/pi/ding.mp3"
+DING_SONG = "/harold/Harold/required/ding.mp3"
 
 MPLAYER_FIFO = "/tmp/mplayer.fifo"
 
