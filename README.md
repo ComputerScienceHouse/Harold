@@ -14,3 +14,6 @@ Alternatively, (as configured on the actual machine) you can add Harold to init.
 ```
 $ service harold (start|stop)
 ```
+
+
+Make sure the user running the script has permissions to read from /dev/ or run the script as root.
