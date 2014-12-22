@@ -47,7 +47,6 @@ def get_user_song(homedir):
     ~/harold/*, of one of the supported file types
     '''
     if homedir:
-        print("Home:", homedir)
         hdir = os.path.join(homedir, "harold")
         hfile = os.path.join(homedir, "harold.mp3")
         hiddenhdir = os.path.join(homedir, ".harold")
