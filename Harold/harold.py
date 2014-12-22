@@ -55,7 +55,7 @@ class Harold(object):
                 song = get_user_song(homedir)
                 print("Now playing '" + song + "'...\n")
                 varID = varID[:-2]
-                userlog.write("\n" + time.strftime('%Y/%m/%d %H:%M:%S') + "," + varID + "," + uid + "," + song)
+                userlog.write("\n" + time.strftime('%Y/%m/%d %H:%M:%S') + "," + uid + "," + song)
                 self.write("loadfile '" + song.replace("'", "\\'") + "'\nget_time_length",
                            delay=0.0)
 
