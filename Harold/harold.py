@@ -47,7 +47,6 @@ class Harold(object):
             if "ready" not in varID:
                 # Turn the LEDs off
                 LED.on(False)
-                LED.on(False)
                 # Get the username from the ibutton
                 uid, homedir = read_ibutton(varID)
                 # Print the user's name (Super handy for debugging...)
@@ -72,7 +71,6 @@ class Harold(object):
             self.write("stop")
             self.playing = False
             self.ser.flushInput()
-            LED.on(True)
             LED.on(True)
             print("Stopped\n")
 
