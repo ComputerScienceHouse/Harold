@@ -13,7 +13,7 @@ DEFAULT_SONGS = map(lambda f: os.path.join("/harold/Harold/random", f),
 SONG_EXTS = (
     ".mp3", ".mp4", ".m4a", ".m4p",
     ".flac", ".ogg", ".oga", ".wav",
-    ".wma"
+    ".wma", ".aac"
 )
 
 
