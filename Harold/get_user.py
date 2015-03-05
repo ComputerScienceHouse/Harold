@@ -2,6 +2,7 @@ from urllib2 import urlopen, HTTPError
 from random import choice
 import json
 import os
+import stat
 
 
 # This is a list of sample songs that will randomly play if the
@@ -15,6 +16,11 @@ SONG_EXTS = (
     ".flac", ".ogg", ".oga", ".wav",
     ".wma", ".aac"
 )
+
+
+def isgroupreadable(filepath):
+    st = os.stat(filepath)
+    return bool(st.st_mode & stat.S_IRGRP)
 
 
 def read_ibutton(varID, cache={}):
@@ -54,14 +60,14 @@ def get_user_song(homedir):
             playlist = [os.path.join(hdir, f)
                         for f in os.listdir(hdir)
                         if os.path.isfile(os.path.join(hdir, f))
-                        and f.endswith(SONG_EXTS)]
+                        and f.endswith(SONG_EXTS) and isgroupreadable(os.path.join(hdir, f))]
             return choice(playlist or DEFAULT_SONGS)
         elif os.path.isdir(hiddenhdir):
             playlist = [os.path.join(hiddenhdir, f)
                         for f in os.listdir(hiddenhdir)
                         if os.path.isfile(os.path.join(hiddenhdir, f))
-                        and f.endswith(SONG_EXTS)]
+                        and f.endswith(SONG_EXTS) and isgroupreadable(os.path.join(hiddenhdir, f))]
             return choice(playlist or DEFAULT_SONGS)
-        elif os.path.isfile(hfile):
+        elif os.path.isfile(hfile) and isgroupreadable(os.path.join(hfile)):
             return hfile
     return choice(DEFAULT_SONGS)
