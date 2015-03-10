@@ -58,14 +58,25 @@ class Harold(object):
                 self.write("loadfile '" + song.replace("'", "\\'") + "'\nget_time_length",
                            delay=0.0)
 
-                line = self.mpout.readline()
-                while not line.startswith("ANS_LENGTH="):
-                    line = self.mpout.readline()
-                duration = float(line.strip().split("=")[-1])
+                line = self.mpout.readline().strip()
+                # timeout = time.time() + 5  # Five second time out to wait for song time.
 
-                self.starttime = time.time()
-                self.endtime = time.time() + min(30, duration)
-                self.playing = True
+                while not line.startswith("ANS_LENGTH="):
+                    line = self.mpout.readline().strip()
+                    if line.startswith("Playing"):  # Check if mplayer can play file.
+                        if self.mpout.readline().strip() == "":
+                            self.starttime = time.time()
+                            self.endtime = time.time()
+                            self.playing = True
+                            break
+                    elif line.startswith("ANS_LENGTH="):
+                        duration = float(line.strip().split("=")[-1])
+                        self.starttime = time.time()
+                        self.endtime = time.time() + min(30, duration)
+                        self.playing = True
+                    else:
+                        pass
+
                 userlog.close()
         elif time.time() >= self.endtime:
             self.write("stop")
