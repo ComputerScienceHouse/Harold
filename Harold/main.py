@@ -3,13 +3,17 @@ from __future__ import division
 from __future__ import print_function
 from harold import Harold
 from serial import Serial
+from time import gmtime, strftime
 import led_control as LED
+import logging
 import argparse
 import os
 import subprocess as sp
 import sys
 
 MPLAYER_FIFO = "/tmp/mplayer.fifo"
+
+DEBUG_FILE = "/home/pi/logs/error_log.txt"
 
 FNULL = open(os.devnull, 'w')
 
@@ -74,4 +78,10 @@ def main():
         LED.cleanup()
 
 if __name__ == '__main__':
-    main()
+
+    logging.basicConfig(level=logging.DEBUG, filename=DEBUG_FILE)
+
+    try:
+        main()
+    except:
+        logging.exception(strftime("%d %b %Y %H:%M:%S", gmtime()))
