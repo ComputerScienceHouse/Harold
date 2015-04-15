@@ -70,8 +70,6 @@ def main():
                 harold()
     except KeyboardInterrupt:
         print("Shutting down")
-    except Serial.SerialExcpetion:
-        pass
     finally:
         mplayer.kill()
         os.remove(args.fifo)
@@ -81,7 +79,7 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.DEBUG, filename=DEBUG_FILE)
 
-    try:
-        main()
-    except:
-        logging.exception(strftime("%d %b %Y %H:%M:%S", gmtime()))
+    #try:
+    main()
+    #except:
+    #    logging.exception(strftime("%d %b %Y %H:%M:%S", gmtime()))

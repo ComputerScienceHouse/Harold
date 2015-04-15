@@ -51,7 +51,7 @@ class Harold(object):
                 uid, homedir = read_ibutton(varID)
                 # Print the user's name (Super handy for debugging...)
                 print("User: '" + uid + "'\n")
-                song = get_user_song(homedir)
+                song = get_user_song(homedir, uid)
                 print("Now playing '" + song + "'...\n")
                 varID = varID[:-2]
                 userlog.write("\n" + time.strftime('%Y/%m/%d %H:%M:%S') + "," + uid + "," + song)
