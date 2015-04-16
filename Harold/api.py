@@ -38,18 +38,23 @@ def create_user(uid, song_id):
 def incoming_request(ibutton, song_id):
     inc_req = (ibutton, song_id)
     username, homedir = read_ibutton(inc_req[0])
+    song_json = []
 
     if request.method == "GET":
         song_index = 0
-        song_dict = {"username": username}
         try:
             song_list = get_user_song(homedir, username, False)
         except:
             song_list = [False]
-        for entry in song_list:
-            song_dict[song_index] = entry
-            song_index += 1
-        return jsonify(song_dict)
+
+        try:
+            for entry in song_list:
+                song_json.append(dict(id=song_index,name=entry))
+                song_index += 1
+            return jsonify(songs=song_json,user=username,status="true")
+        except:
+            song_json.append(dict(id=0,name="null"))
+            return jsonify(songs=song_json,user=username,status="false")
 
     if request.method == "POST":
         try:
