@@ -1,5 +1,6 @@
 from get_user import read_ibutton, get_user_song
 from flask import Flask, request, jsonify
+from ntpath import basename
 import sqlite3
 import argparse
 
@@ -49,12 +50,12 @@ def incoming_request(ibutton, song_id):
 
         try:
             for entry in song_list:
-                song_json.append(dict(id=song_index,name=entry))
+                song_json.append(dict(id=song_index, name=basename(entry)))
                 song_index += 1
-            return jsonify(songs=song_json,user=username,status="true")
+            return jsonify(songs=song_json, user=username, status="true")
         except:
-            song_json.append(dict(id=0,name="null"))
-            return jsonify(songs=song_json,user=username,status="false")
+            song_json.append(dict(id=0, name="null"))
+            return jsonify(songs=song_json, user=username, status="false")
 
     if request.method == "POST":
         try:
