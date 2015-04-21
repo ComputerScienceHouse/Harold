@@ -28,7 +28,7 @@ def set_song(uid, song_id):
 
 
 def create_user(uid, song_id):
-    conn = sqlite3.connect('harold_api.db')
+    conn = sqlite3.connect('/harold/Harold/harold_api.db')
     c = conn.cursor()
     c.execute('INSERT INTO api_users VALUES ("{uid}", "{song_id}", 0)'.format(song_id=song_id, uid=uid))
     conn.commit()
