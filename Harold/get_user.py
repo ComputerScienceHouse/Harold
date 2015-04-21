@@ -25,7 +25,7 @@ def isgroupreadable(filepath):
 
 
 def create_user_dict():
-    conn = sqlite3.connect('harold_api.db')
+    conn = sqlite3.connect('/harold/Harold/harold_api.db')
     c = conn.cursor()
     user_dict = {}
     for row in c.execute('SELECT * FROM api_users ORDER BY username'):
@@ -35,7 +35,7 @@ def create_user_dict():
 
 
 def set_played(uid):
-    conn = sqlite3.connect('harold_api.db')
+    conn = sqlite3.connect('/harold/Harold/harold_api.db')
     c = conn.cursor()
     c.execute('UPDATE api_users SET song_played=1 WHERE username="{uid}"'.format(uid=uid))
     conn.commit()

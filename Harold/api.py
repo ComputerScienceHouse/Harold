@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 
 def create_user_dict():
-    conn = sqlite3.connect('harold_api.db')
+    conn = sqlite3.connect('/harold/Harold/harold_api.db')
     c = conn.cursor()
     user_dict = {}
     for row in c.execute('SELECT * FROM api_users ORDER BY username'):
@@ -19,7 +19,7 @@ def create_user_dict():
 
 
 def set_song(uid, song_id):
-    conn = sqlite3.connect('harold_api.db')
+    conn = sqlite3.connect('/harold/Harold/harold_api.db')
     c = conn.cursor()
     c.execute('UPDATE api_users SET song_played=0 WHERE username="{uid}";'.format(uid=uid))
     c.execute('UPDATE api_users SET song_id={song_id}  WHERE username="{uid}";'.format(song_id=song_id, uid=uid))
@@ -49,10 +49,15 @@ def incoming_request(ibutton, song_id):
             song_list = [False]
 
         try:
-            for entry in song_list:
-                song_json.append(dict(id=song_index, name=basename(entry)))
-                song_index += 1
+            if isinstance(song_list, list):
+                for entry in song_list:
+                    song_json.append(dict(id=song_index, name=basename(entry)))
+                    song_index += 1
+            else:
+                song_json.append(dict(id=song_index, name=basename(song_list)))
+
             return jsonify(songs=song_json, user=username, status="true")
+
         except:
             song_json.append(dict(id=0, name="null"))
             return jsonify(songs=song_json, user=username, status="false")
