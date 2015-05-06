@@ -92,6 +92,8 @@ def get_user_song(homedir, username, random=True, for_api=False):
 
         elif os.path.isfile(hfile) and isgroupreadable(os.path.join(hfile)):
             return hfile
+        else:
+            return choice(DEFAULT_SONGS)
 
         if random:
                 if username in user_dict:
