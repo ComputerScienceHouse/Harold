@@ -71,7 +71,7 @@ def get_user_song(homedir, username, random=True, for_api=False):
     ~/harold.mp3
     ~/harold/*, of one of the supported file types
     '''
-
+    global playlist
     user_dict = create_user_dict()
 
     if homedir:
