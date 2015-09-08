@@ -19,13 +19,14 @@ def quiet_hours():
 
 class Harold(object):
 
-    def __init__(self, mplfifo, ser, mpout, beep=True):
+    def __init__(self, mplfifo, ser, mpout, beep=True, override = []):
         self.playing = False
         self.mixer = Mixer(control='PCM')
         self.fifo = mplfifo
         self.ser = ser
         self.mpout = mpout
         self.beep = beep
+        self.override = override
 
     def write(self, *args, **kwargs):
         delay = kwargs.pop("delay", 0.5)
@@ -34,23 +35,23 @@ class Harold(object):
         print(*args, **kws)
         time.sleep(delay)
 
-    def __call__(self):
-        if not self.playing:
-            userlog = open("/home/pi/logs/user_log.csv", "a")
-            # Lower the volume during quiet hours... Don't piss off the RA!
-            self.mixer.setvolume(85 if quiet_hours() else 100)
-            varID = self.ser.readline()
-            print(varID)
-            # mplayer will play any files sent to the FIFO file.
-            if self.beep:
-                self.write("loadfile", DING_SONG)
-            if "ready" not in varID:
-                # Turn the LEDs off
-                LED.on(False)
-                # Get the username from the ibutton
-                uid, homedir = read_ibutton(varID)
-                # Print the user's name (Super handy for debugging...)
-                print("User: '" + uid + "'\n")
+    def play(self, override = False):
+        varID = self.ser.readline()
+        if varID == None or varID == "":
+            return
+        print(varID)
+        # mplayer will play any files sent to the FIFO file.
+        if self.beep:
+            self.write("loadfile", DING_SONG)
+        if "ready" not in varID:
+            # Turn the LEDs off
+            LED.on(False)
+            # Get the username from the ibutton
+            uid, homedir = read_ibutton(varID)
+            # Print the user's name (Super handy for debugging...)
+            print("User: '" + uid + "'\n")
+
+            if not override or (override and uid in self.override):
                 song = get_user_song(homedir, uid)
                 print("Now playing '" + song + "'...\n")
                 varID = varID[:-2]
@@ -78,6 +79,15 @@ class Harold(object):
                         pass
 
                 userlog.close()
+
+    def __call__(self):
+        if not self.playing:
+            userlog = open("/home/pi/logs/user_log.csv", "a")
+            # Lower the volume during quiet hours... Don't piss off the RA!
+            self.mixer.setvolume(85 if quiet_hours() else 100)
+            play(False)
+        elif self.playing and time.time() < self.endtime:
+            play(True)
         elif time.time() >= self.endtime:
             self.write("stop")
             self.playing = False
@@ -92,4 +102,3 @@ class Harold(object):
                 vol -= 1 + (100 - vol)/30.
                 self.mixer.setvolume(int(vol))
                 time.sleep(0.1)
-
