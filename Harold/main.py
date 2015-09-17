@@ -50,6 +50,8 @@ def main():
                         help="Disable beep")
     parser.add_argument("--overrides", "-o", default="",
                         help="allow users to be override others")
+    parser.add_argument("--blacklist", "-b", default="",
+                        help="blacklist certain usernames")
     args = parser.parse_args()
     try:
         os.mkfifo(args.fifo)
@@ -67,7 +69,7 @@ def main():
                 ser = Serial(args.serial, args.rate, timeout = 1)
                 ser.flushInput()
             harold = Harold(mplfifo, ser, mplayer.stdout, not args.nobeep,
-                    args.overrides.split(","))
+                    args.overrides.split(","), args.blacklist.split(","))
             while True:
                 harold()
     except KeyboardInterrupt:
