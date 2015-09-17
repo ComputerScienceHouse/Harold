@@ -79,6 +79,7 @@ def get_user_song(homedir, username, random=True, for_api=False):
         hfile = os.path.join(homedir, "harold.mp3")
         hiddenhdir = os.path.join(homedir, ".harold")
         if os.path.isdir(hdir):
+            print("User has harold folder")
             playlist = [os.path.join(hdir, f)
                         for f in os.listdir(hdir)
                         if os.path.isfile(os.path.join(hdir, f))
