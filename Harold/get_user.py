@@ -59,9 +59,11 @@ def read_ibutton(varID, cache={}):
     except ValueError as error:
         # Got malformed JSON somehow
         print(error)
-    else:
+    if 'error' not in uidData:
         cache[varID] = uidData['uid'], uidData['homeDir']
         return cache[varID]
+    else:
+        print('iButton: {} not found!'.format(varID.rstrip()))
     return "", ""
 
 
