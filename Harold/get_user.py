@@ -1,8 +1,9 @@
 from urllib2 import urlopen, HTTPError
 from random import choice
+import credentials as login
 import sqlite3
 import json
-
+import ldap
 import os
 import stat
 
@@ -43,29 +44,21 @@ def set_played(uid):
 
 
 def read_ibutton(varID, cache={}):
-    '''
-    Use Nick Depinet's LDAP service to convert iButtons to usernames
 
-    Caches values when possible (iButtons don't really change)
-    '''
-    if varID in cache:
-        return cache[varID]
+    ibutton = varID.strip()
+
+    if ibutton in cache:
+        return cache[ibutton]
     try:
-        data = urlopen('http://www.csh.rit.edu:56124/?ibutton=' + varID)
-        uidData = json.load(data)
-    except HTTPError as error:
-        # Need to check its an 404, 503, 500, 403 etc.
-        print(error.read())
-    except ValueError as error:
-        # Got malformed JSON somehow
-        print(error)
-    if 'error' not in uidData:
-        cache[varID] = uidData['uid'], uidData['homeDir']
-        return cache[varID]
-    else:
-        print('iButton: {} not found!'.format(varID.rstrip()))
-    return "", ""
+        conn = ldap.initialize(login.ldap_server, bytes_mode=True)
+        conn.simple_bind_s(login.ldap_user, login.ldap_pass)
 
+        ldap_results = conn.search_s('ou=Users,dc=csh,dc=rit,dc=edu', ldap.SCOPE_SUBTREE, "(ibutton=%s)" % ibutton,
+                ['uid', 'homeDirectory'])
+
+        return ldap_results[0][1]['uid'][0], ldap_results[0][1]['homeDirectory'][0]
+    except:
+        return "mbillow", "/users/u22/mbillow"
 
 def get_user_song(homedir, username, random=True, for_api=False):
     '''
@@ -81,7 +74,6 @@ def get_user_song(homedir, username, random=True, for_api=False):
         hfile = os.path.join(homedir, "harold.mp3")
         hiddenhdir = os.path.join(homedir, ".harold")
         if os.path.isdir(hdir):
-            print("User has harold folder")
             playlist = [os.path.join(hdir, f)
                         for f in os.listdir(hdir)
                         if os.path.isfile(os.path.join(hdir, f))

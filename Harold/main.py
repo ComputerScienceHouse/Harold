@@ -13,7 +13,7 @@ import sys
 
 MPLAYER_FIFO = "/tmp/mplayer.fifo"
 
-DEBUG_FILE = "error_log.txt"
+DEBUG_FILE = "/home/pi/logs/error_log.txt"
 
 FNULL = open(os.devnull, 'w')
 
@@ -48,10 +48,6 @@ def main():
                         help="FIFO to communicate to mplayer with")
     parser.add_argument("--nobeep", "-n", action="store_true",
                         help="Disable beep")
-    parser.add_argument("--overrides", "-o", default="",
-                        help="allow users to be override others")
-    parser.add_argument("--blacklist", "-b", default="",
-                        help="blacklist certain usernames")
     args = parser.parse_args()
     try:
         os.mkfifo(args.fifo)
@@ -66,10 +62,10 @@ def main():
             if args.debug:
                 ser = MockSerial()
             else:
-                ser = Serial(args.serial, args.rate, timeout = 1)
+                ser = Serial(args.serial, args.rate)
                 ser.flushInput()
-            harold = Harold(mplfifo, ser, mplayer.stdout, not args.nobeep,
-                    args.overrides.split(","), args.blacklist.split(","))
+
+            harold = Harold(mplfifo, ser, mplayer.stdout, not args.nobeep)
             while True:
                 harold()
     except KeyboardInterrupt:
