@@ -12,6 +12,8 @@ import os
 import subprocess as sp
 import sys
 import time
+import vlc
+import requests
 
 
 # This is a list of sample songs that will randomly play if the
@@ -81,32 +83,17 @@ def read_ibutton(varID, cache={}):
     return "", ""
 
 
-def get_user_song(homedir):
-    '''
-    Load one of the following files:
-    ~/harold.mp3
-    ~/harold/*, of one of the supported file types
-    '''
-    if homedir:
-        print("Home:", homedir)
-        hdir = os.path.join(homedir, "harold")
-        hfile = os.path.join(homedir, "harold.mp3")
-        hiddenhdir = os.path.join(homedir, ".harold")
-        if os.path.isdir(hdir):
-            playlist = [os.path.join(hdir, f)
-                        for f in os.listdir(hdir)
-                        if os.path.isfile(os.path.join(hdir, f))
-                        and f.endswith(SONG_EXTS)]
-            return choice(playlist or DEFAULT_SONGS)
-        elif os.path.isdir(hiddenhdir):
-            playlist = [os.path.join(hiddenhdir, f)
-                        for f in os.listdir(hiddenhdir)
-                        if os.path.isfile(os.path.join(hiddenhdir, f))
-                        and f.endswith(SONG_EXTS)]
-            return choice(playlist or DEFAULT_SONGS)
-        elif os.path.isfile(hfile):
-            return hfile
-    return choice(DEFAULT_SONGS)
+def get_user_song(uid):
+    r = requests.post("https://audiophiler.csh.rit.edu/get_harold/" + uid, json = {"auth_key":"3wzm2$xhEw%43!PRwCOQ*Jev6U"})
+    print(r)
+    if int(r.status_code) !=  200:
+        return choice(DEFAULT_SONGS)
+    else:
+        p = vlc.MediaPlayer(r.text)
+        p.play()
+        time.sleep(30)
+        p.stop()
+        return None
 
 
 class Harold(object):
@@ -144,22 +131,23 @@ class Harold(object):
                 uid, homedir = read_ibutton(varID)
                 # Print the user's name (Super handy for debugging...)
                 print("User: '" + uid + "'\n")
-                song = get_user_song(homedir)
-                print("Now playing '" + song + "'...\n")
-                varID = varID[:-2]
-                userlog.write("\n" + time.strftime('%Y/%m/%d %H:%M:%S') + "," + varID + "," + uid + "," + song)
-                self.write("loadfile '" + song.replace("'", "\\'") + "'\nget_time_length",
-                           delay=0.0)
+                song = get_user_song(uid)
+                if song is not None:
+                    print("Now playing '" + song + "'...\n")
+                    varID = varID[:-2]
+                    userlog.write("\n" + time.strftime('%Y/%m/%d %H:%M:%S') + "," + varID + "," + uid + "," + song)
+                    self.write("loadfile '" + song.replace("'", "\\'") + "'\nget_time_length",
+                               delay=0.0)
 
-                line = self.mpout.readline()
-                while not line.startswith("ANS_LENGTH="):
                     line = self.mpout.readline()
-                duration = float(line.strip().split("=")[-1])
+                    while not line.startswith("ANS_LENGTH="):
+                        line = self.mpout.readline()
+                    duration = float(line.strip().split("=")[-1])
 
-                self.starttime = time.time()
-                self.endtime = time.time() + min(30, duration)
-                self.playing = True
-                userlog.close()
+                    self.starttime = time.time()
+                    self.endtime = time.time() + min(30, duration)
+                    self.playing = True
+                    userlog.close()
         elif time.time() >= self.endtime:
             self.write("stop")
             self.playing = False
